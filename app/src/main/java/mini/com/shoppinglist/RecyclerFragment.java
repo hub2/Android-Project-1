@@ -10,6 +10,7 @@ import android.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +33,7 @@ public class RecyclerFragment extends Fragment {
     private RecyclerView.LayoutManager mProductListLayoutManager;
     private FloatingActionButton mFab;
     private static final int REQ_CODE_NEW_PRODUCT = 1;
+    private static final int REQ_CODE_EDIT_PRODUCT = 2;
 
 
     public RecyclerFragment() {
@@ -39,9 +41,17 @@ public class RecyclerFragment extends Fragment {
     }
 
     public void onActivityResult (int requestCode, int resultCode, Intent data) {
+        Log.d("cojestkurwa", Integer.toString(requestCode));
+        Log.d("cojestkurwa", Integer.toString(resultCode));
         if(resultCode == RESULT_OK && requestCode == REQ_CODE_NEW_PRODUCT) {
             Product newProduct = (Product)data.getExtras().getSerializable("new_product");
             mProducts.add(newProduct);
+            saveSharedPreferencesProductsList();
+            mProductListAdapter.notifyDataSetChanged();
+        }else if (resultCode == RESULT_OK && requestCode == REQ_CODE_EDIT_PRODUCT){
+            Product edited = (Product)data.getExtras().getSerializable("edited_product");
+            int position = data.getIntExtra("position", 0);
+            mProducts.set(position, edited);
             saveSharedPreferencesProductsList();
             mProductListAdapter.notifyDataSetChanged();
         }
@@ -68,10 +78,10 @@ public class RecyclerFragment extends Fragment {
         mProductListLayoutManager = new LinearLayoutManager(getActivity());
         mProductListRecyclerView.setLayoutManager(mProductListLayoutManager);
 
-        mProductListAdapter = new ProductListAdapter(mProducts);
+        mProductListAdapter = new ProductListAdapter(mProducts, this);
         mProductListRecyclerView.setAdapter(mProductListAdapter);
 
-        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT){
             @Override
             public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
                 return false;

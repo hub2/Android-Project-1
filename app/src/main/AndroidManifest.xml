@@ -21,6 +21,11 @@
             android:windowSoftInputMode="adjustResize">
 
         </activity>
+        <activity
+            android:name=".EditProductActivity"
+            android:windowSoftInputMode="adjustResize">
+
+        </activity>
     </application>
 
 </manifest>

@@ -1,6 +1,7 @@
 package mini.com.shoppinglist;
 
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -18,9 +19,12 @@ import android.view.ViewGroup;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -41,8 +45,8 @@ public class RecyclerFragment extends Fragment {
     }
 
     public void onActivityResult (int requestCode, int resultCode, Intent data) {
-        Log.d("cojestkurwa", Integer.toString(requestCode));
-        Log.d("cojestkurwa", Integer.toString(resultCode));
+
+
         if(resultCode == RESULT_OK && requestCode == REQ_CODE_NEW_PRODUCT) {
             Product newProduct = (Product)data.getExtras().getSerializable("new_product");
             mProducts.add(newProduct);
@@ -104,24 +108,45 @@ public class RecyclerFragment extends Fragment {
         startActivityForResult(child, REQ_CODE_NEW_PRODUCT);
     }
     public void saveSharedPreferencesProductsList(){
-        SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext());
-        SharedPreferences.Editor prefsEditor = mPrefs.edit();
-        Gson gson = new Gson();
-        String json = gson.toJson(mProducts);
-        prefsEditor.putString("productsList", json);
-        prefsEditor.apply();
+        final Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                Gson gson = new Gson();
+                String json = gson.toJson(mProducts);
+                try {
+                    FileOutputStream outputStream = getActivity()
+                            .openFileOutput("productsList", Context.MODE_PRIVATE);
+                    outputStream.write(json.getBytes());
+                    outputStream.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        r.run();
     }
     public List<Product> loadSharedPreferencesProductsList() {
-        List<Product> productsList;
-        SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext());
+        List<Product> productsList = new ArrayList<>();
         Gson gson = new Gson();
-        String json = mPrefs.getString("productsList", "");
-        if (json.isEmpty()) {
-            productsList = new ArrayList<>();
-        } else {
-            Type type = new TypeToken<List<Product>>() {}.getType();
-            productsList = gson.fromJson(json, type);
+
+        try {
+            FileInputStream inputStream = getActivity()
+                    .openFileInput("productsList");
+            String json = convertStreamToString(inputStream);
+
+            if (!json.isEmpty()) {
+                Type type = new TypeToken<List<Product>>() {}.getType();
+                productsList = gson.fromJson(json, type);
+            }
+
+            inputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return productsList;
+    }
+    static String convertStreamToString(java.io.InputStream is) {
+        java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+        return s.hasNext() ? s.next() : "";
     }
 }

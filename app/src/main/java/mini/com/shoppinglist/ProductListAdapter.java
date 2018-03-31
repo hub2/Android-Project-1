@@ -38,7 +38,7 @@ public class ProductListAdapter extends RecyclerView.Adapter<ProductListAdapter.
                     Intent child = new Intent(context.getActivity(), EditProductActivity.class);
                     child.putExtra("product", product);
                     child.putExtra("position", position);
-                    Log.d("cojestkurwa", mContext.toString());
+
                     mContext.startActivityForResult(child, REQ_CODE_EDIT_PRODUCT);
                 }
             });

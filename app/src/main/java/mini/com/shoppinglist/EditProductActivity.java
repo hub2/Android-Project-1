@@ -37,7 +37,7 @@ public class EditProductActivity extends AppCompatActivity {
                 resultIntent.putExtra("edited_product", productToReturn);
                 resultIntent.putExtra("position", position);
                 setResult(resultCode, resultIntent);
-                Log.d("cojestkurwa2", Integer.toString(resultCode));
+
                 finish();
             }
         });
